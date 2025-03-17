@@ -22,6 +22,7 @@ class PlayerService : Service() {
         private var playerRunning = false
         private var playTrack = false
 
+        @SuppressLint("StaticFieldLeak")
         private lateinit var notificationBuilder : NotificationCompat.Builder
     }
 
@@ -37,7 +38,6 @@ class PlayerService : Service() {
         createNotification()
 
         startForeground(NOTIFICATION_ID, notificationBuilder.build())
-
 
         notificationBuilder.setContentText("resrd")
         return START_STICKY
