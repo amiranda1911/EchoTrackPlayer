@@ -1,14 +1,16 @@
 package br.dev.amiranda.echotrack
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
 class PlayerService : Service() {
@@ -19,8 +21,10 @@ class PlayerService : Service() {
 
         private val pcmPlayer = PCMPlayer()
 
+
         @SuppressLint("StaticFieldLeak")
         private lateinit var notificationBuilder : NotificationCompat.Builder
+        private lateinit var notificationManager : NotificationManager
     }
 
     private val messenger = Messenger(handler())
@@ -33,12 +37,9 @@ class PlayerService : Service() {
             val action = data.getString("action").toString()
             val args = data.getString("args").toString()
 
-            when(action){
+            when(action) {
                 "play" -> playFile(args)
-                "stop" -> {
-                    pcmPlayer.stop()
-                    playerRunning = false
-                }
+                "stop" -> pcmPlayer.stop()
             }
 
         }
@@ -46,20 +47,28 @@ class PlayerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
+
     }
 
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        val mChannel = NotificationChannel(CHANNEL_ID, "Player Notifications", NotificationManager.IMPORTANCE_HIGH)
+        mChannel.description = "nPlayerChannel"
+
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(mChannel)
+
         notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Track")
             .setContentText("Artist")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
 
         startForeground(NOTIFICATION_ID, notificationBuilder.build())
 
-        notificationBuilder.setContentText("EchoTrack Player")
         return START_STICKY
     }
 
@@ -67,14 +76,36 @@ class PlayerService : Service() {
         return messenger.binder
     }
 
+
     private fun playFile(filepath: String) {
         if(playerRunning){
             pcmPlayer.stop()
         }
-
+        metadataFileNotification(filepath)
         pcmPlayer.setAudioFile(filepath)
         playerRunning = true
         pcmPlayer.start()
 
+    }
+
+    private fun metadataFileNotification(file: String) {
+        val retriever = MediaMetadataRetriever()
+        val metadata = mutableMapOf<String, String>()
+        try{
+            retriever.setDataSource(file)
+            metadata["title"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Uknow"
+            metadata["artist"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: "Uknow"
+            metadata["album"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM) ?: "Uknow"
+
+            notificationBuilder.setContentTitle(metadata["title"]).setSilent(true)
+            notificationBuilder.setContentText(metadata["artist"]).setSilent(true)
+
+            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+
+        }catch (e : Exception){
+            e.printStackTrace()
+        }finally {
+            retriever.release()
+        }
     }
 }
