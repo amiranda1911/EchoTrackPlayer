@@ -86,6 +86,14 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
         playerThread = null
     }
 
+    fun getHeadPlayerPosition(): Int {
+        // return position in ms
+        var playbackFrames = audioTrack?.playbackHeadPosition ?: 0
+        var playbackTime = (playbackFrames * 1000) /sampleRate
+
+        return playbackTime
+    }
+
     private fun playFile() {
         // Init AudioTrack
         audioTrack = AudioTrack(
