@@ -14,7 +14,6 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
     private var isPlaying = false
 
     private var playerThread: Thread? = null
-    private var decoderThread: Thread? = null
 
     private var audioAttributes: AudioAttributes? = null
     private var audioFormat: AudioFormat? = null
@@ -55,6 +54,18 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
             playFile()
         }
         playerThread?.start()
+    }
+
+    fun pause() {
+        if (!isPlaying) {
+            audioTrack?.play()
+            isPlaying = true
+        }
+        else {
+            audioTrack?.pause()
+            isPlaying = false
+        }
+
     }
 
     fun stop() {
