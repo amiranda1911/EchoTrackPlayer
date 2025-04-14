@@ -1,15 +1,59 @@
+# === Android Studio / IntelliJ ===
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.ipr
+*.iws
+
+# === Build / Output ===
+/build/
+/*/build/
+/out/
+
+# === Gradle ===
+.gradle/
 local.properties
+*.log
+
+# === Signing / Keys ===
+/keystore.jks
+*.keystore
+*.jks
+
+# === Proguard / R8 ===
+/proguard/
+
+# === Auto-generated files ===
+captures/
+.externalNativeBuild/
+.cxx/
+
+# === Cache ===
+*.cache
+*.tmp
+*.temp
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Jetpack Compose Preview ===
+*.preview
+
+# === Kotlin ===
+*.kotlin_module
+
+# === NDK / CMake ===
+cmake-build-debug/
+cmake-build-release/
+
+# === Misc ===
+*.apk
+*.ap_
+*.dex
+*.class
+*.so
+*.jar
+*.zip
+
+# === VSCode (caso use) ===
+.vscode/
