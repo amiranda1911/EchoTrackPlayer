@@ -36,7 +36,6 @@ class PlayerService : Service() {
 
     private inner class handler : Handler(Looper.getMainLooper()) {
 
-
         override fun handleMessage(msg: Message) {
             val data = msg.data
             val action = data.getString("action").toString()
@@ -78,9 +77,7 @@ class PlayerService : Service() {
         return messenger.binder
     }
 
-
     private fun playFile(filepath: String) {
-
         if(playerRunning){
             pcmPlayer.stop()
         }
@@ -88,7 +85,6 @@ class PlayerService : Service() {
         pcmPlayer.setAudioFile(filepath)
         playerRunning = true
         pcmPlayer.start()
-
     }
 
     private fun metadataFileNotification(file: String) {
@@ -102,7 +98,6 @@ class PlayerService : Service() {
             var thumbnail : Bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
             if (imagemBytes != null) {
                 thumbnail = BitmapFactory.decodeByteArray(imagemBytes, 0, imagemBytes.size);
-                // Agora você pode exibir ou salvar o bitmap
             }
 
             val fos = FileOutputStream(thumb);
@@ -121,10 +116,6 @@ class PlayerService : Service() {
             notificationBuilder.setContentText(metadata["artist"]).setSilent(true)
 
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-
-
-            // Log para verificar o envio do broadcast
-            Log.d("PlayerService", "Enviando broadcast com título: ${metadata["title"]}, artista: ${metadata["artist"]}, álbum: ${metadata["album"]}")
 
             val playerStartIntentBroadcast = Intent("br.dev.amiranda.EchoTrack.PlayerStart")
             playerStartIntentBroadcast.putExtra("thumb", uri.toString())

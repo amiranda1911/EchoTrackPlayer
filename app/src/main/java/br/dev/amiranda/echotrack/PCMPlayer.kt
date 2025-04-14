@@ -65,7 +65,6 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
             audioTrack?.pause()
             isPlaying = false
         }
-
     }
 
     fun stop() {
@@ -108,7 +107,7 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
 
         extractPCMAudio(audioFile)
 
-        // Após a reprodução, paramos e liberamos o AudioTrack
+        // release resources
         audioTrack?.stop()
         audioTrack?.release()
         audioTrack = null
@@ -146,15 +145,13 @@ class PCMPlayer( private val sampleRate: Int = 44100, private val numChannels: I
         val outputBuffers = codec.outputBuffers
         val bufferInfo = MediaCodec.BufferInfo()
 
-
-
         var isExtracting = true
         var isDecoding = true
 
         while (isDecoding) {
             if (Thread.currentThread().isInterrupted) {
                 println("Thread foi interrompida. Parando a execução...")
-                break // Para o bloco when ou o loop
+                break
             }
 
             if (isExtracting) {

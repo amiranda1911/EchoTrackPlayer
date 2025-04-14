@@ -94,8 +94,6 @@ class MainActivity : FragmentActivity() {
     private fun registerAllReceivers(){
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                Log.e("MeuReceiver", "Broadcast recebido!")
-                Log.e("MeuReceiver", "Action: ${intent?.action}")
                 if (intent?.action.equals("br.dev.amiranda.EchoTrack.PlayerStart")) {
                     val title = intent?.getStringExtra("title")
                     val artist = intent?.getStringExtra("artist")
@@ -109,17 +107,14 @@ class MainActivity : FragmentActivity() {
                             val inputStream = getContentResolver().openInputStream(uri)
                             bitmap = BitmapFactory.decodeStream(inputStream)
                             inputStream?.close();
-                            // Usa o bitmap como quiser
+
                         } catch (e : Exception) {
                             e.printStackTrace();
                         }
                     }
-
                     thumbnailView.setImageBitmap(bitmap)
                     titleView.text = title
                     artistView.text = artist
-
-                    Toast.makeText(this@MainActivity, "Tocando: $thumb", Toast.LENGTH_SHORT).show()
                 }
             }
         }
