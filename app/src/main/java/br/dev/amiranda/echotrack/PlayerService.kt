@@ -5,13 +5,19 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
 
 class PlayerService : Service() {
     companion object {
@@ -20,7 +26,6 @@ class PlayerService : Service() {
         private var playerRunning = false
 
         private val pcmPlayer = PCMPlayer()
-
 
         @SuppressLint("StaticFieldLeak")
         private lateinit var notificationBuilder : NotificationCompat.Builder
@@ -41,14 +46,11 @@ class PlayerService : Service() {
                 "play" -> playFile(args)
                 "stop" -> pcmPlayer.stop()
             }
-
         }
     }
 
     override fun onCreate() {
         super.onCreate()
-
-
     }
 
     @SuppressLint("ForegroundServiceType")
@@ -78,6 +80,7 @@ class PlayerService : Service() {
 
 
     private fun playFile(filepath: String) {
+
         if(playerRunning){
             pcmPlayer.stop()
         }
@@ -93,14 +96,42 @@ class PlayerService : Service() {
         val metadata = mutableMapOf<String, String>()
         try{
             retriever.setDataSource(file)
+
+            val thumb = File(cacheDir, "thumb_temp.jpg")
+            val imagemBytes = retriever.getEmbeddedPicture();
+            var thumbnail : Bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+            if (imagemBytes != null) {
+                thumbnail = BitmapFactory.decodeByteArray(imagemBytes, 0, imagemBytes.size);
+                // Agora você pode exibir ou salvar o bitmap
+            }
+
+            val fos = FileOutputStream(thumb);
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+
+            fos.close();
+
+            val uri = FileProvider.getUriForFile(this, "br.dev.amiranda.fileprovider", thumb);
+
             metadata["title"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: "Uknow"
             metadata["artist"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST) ?: "Uknow"
             metadata["album"] = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM) ?: "Uknow"
+
 
             notificationBuilder.setContentTitle(metadata["title"]).setSilent(true)
             notificationBuilder.setContentText(metadata["artist"]).setSilent(true)
 
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+
+
+            // Log para verificar o envio do broadcast
+            Log.d("PlayerService", "Enviando broadcast com título: ${metadata["title"]}, artista: ${metadata["artist"]}, álbum: ${metadata["album"]}")
+
+            val playerStartIntentBroadcast = Intent("br.dev.amiranda.EchoTrack.PlayerStart")
+            playerStartIntentBroadcast.putExtra("thumb", uri.toString())
+            playerStartIntentBroadcast.putExtra("title", metadata["title"])
+            playerStartIntentBroadcast.putExtra("artist", metadata["artist"])
+            playerStartIntentBroadcast.putExtra("album", metadata["album"])
+            sendBroadcast(playerStartIntentBroadcast)
 
         }catch (e : Exception){
             e.printStackTrace()
